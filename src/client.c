@@ -1,22 +1,22 @@
 #include"client.h"
-void CreatePackReq(packreq_t* pack){
+void cl_CreatePackReq(cl_packreq_t* pack){
     pack->indexpack=-1;
     pack->JsonToObject=NULL;
     pack->ProcessPack=NULL;
 }
-void client_addresfunction(client_t* cl,inforesfunction_t info){
-	arrayd_addelement(&cl->resfunction,&info);
+void cl_client_addresfunction(cl_client_t* cl,cl_inforesfunction_t info){
+	cl_arrayd_addelement(&cl->resfunction,&info);
 }
-void client_adduserpacks(client_t* cl,void(*CreatePack)(packreq_t* self),int sizeuserpack,int idpack){
-	infopackreq_t info;
+void cl_client_adduserpacks(cl_client_t* cl,void(*CreatePack)(cl_packreq_t* self),int sizeuserpack,int idpack){
+	cl_infopackreq_t info;
     info.CreatePack=CreatePack;
     info.idpack=idpack;
     info.sizepack=sizeuserpack;
-    arrayd_addelement(&cl->userpacks,&info);
+    cl_arrayd_addelement(&cl->userpacks,&info);
 }
-int ClientConnect(client_t* client,const char* ip,int port){
-	InitArrayd(&client->userpacks,0,sizeof(infopackreq_t));
-	InitArrayd(&client->resfunction,0,sizeof(inforesfunction_t));
+int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
+	cl_InitArrayd(&client->userpacks,0,sizeof(cl_infopackreq_t));
+	cl_InitArrayd(&client->resfunction,0,sizeof(cl_inforesfunction_t));
 	client->port=port;
     strcpy(client->ip,ip);
 	//Create socket
@@ -43,21 +43,21 @@ int ClientConnect(client_t* client,const char* ip,int port){
 	printf("CONNECT\n");
 	return 0;
 }
-void CreatePackRes(packres_t* pack){
+void cl_CreatePackRes(cl_packres_t* pack){
     pack->idpack=-1;
     pack->GetJsonPack=NULL;
 }
-void CreateInfoPackReq(infopackreq_t* self){
+void cl_CreateInfoPackReq(cl_infopackreq_t* self){
     self->CreatePack=NULL;
     self->sizepack=0;
     self->idpack=-1;
 }
-void CreateInfoResFunction(inforesfunction_t* self){
+void cl_CreateInfoResFunction(cl_inforesfunction_t* self){
 	self->Result=NULL;
 	self->indexpack=-1;
 }
 
-int sendall(client_t* client, char *buf, int *len)
+int cl_sendall(cl_client_t* client, char *buf, int *len)
 {
  int total = 0; // сколько байт мы послали
  int bytesleft = *len; // сколько байт осталось послать
@@ -71,18 +71,18 @@ int sendall(client_t* client, char *buf, int *len)
  *len = total; // здесь количество действительно посланных байт
  return n==-1?-1:0; // вернуть -1 при сбое, 0 при успехе
 }
-int sender(client_t* client,char* buf,int len){
+int cl_sender(cl_client_t* client,char* buf,int len){
 	int mylen=len;
 	int res=-1;
 	do
 	{
 		mylen=len;
-		res=sendall(client,buf,&mylen);
+		res=cl_sendall(client,buf,&mylen);
 		if(res==-1){
 			printf("NONE CONNECT\n");
 			close(client->sock_conn);
 			client->sock_conn=-1;
-			ClientConnect(client,client->ip,client->port);
+			cl_ClientConnect(client,client->ip,client->port);
 			
 		}
 	} while (res!=0);
@@ -91,34 +91,34 @@ int sender(client_t* client,char* buf,int len){
 	return mylen;
 }
 
-void SendPack(client_t* client,packres_t* pack,void(*Result)(packreq_t* pack)){
+void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack)){
     static int indexpack=0;
-    json_construct_t j=pack->GetJsonPack(pack);
-    json_item_t jidpack;
-    CreateJson_Item(&jidpack);
-    json_item_setname(&jidpack,"idpack");
-    json_item_setintvalue(&jidpack,pack->idpack);
-    json_construct_addelement(&j,jidpack);
-    json_item_t jindexpack;
-    CreateJson_Item(&jindexpack);
-    json_item_setname(&jindexpack,"indexpack");
-    json_item_setintvalue(&jindexpack,indexpack);
-    json_construct_addelement(&j,jindexpack);
+    cl_json_construct_t j=pack->GetJsonPack(pack);
+    cl_json_item_t jidpack;
+    cl_CreateJson_Item(&jidpack);
+    cl_json_item_setname(&jidpack,"idpack");
+    cl_json_item_setintvalue(&jidpack,pack->idpack);
+    cl_json_construct_addelement(&j,jidpack);
+    cl_json_item_t jindexpack;
+    cl_CreateJson_Item(&jindexpack);
+    cl_json_item_setname(&jindexpack,"indexpack");
+    cl_json_item_setintvalue(&jindexpack,indexpack);
+    cl_json_construct_addelement(&j,jindexpack);
 	int size=0;
-    char* data=json_construct_getstring_SEND(&j,&size);
+    char* data=cl_json_construct_getstring_SEND(&j,&size);
     printf("DATA: %s\n",&data[4]);
-	inforesfunction_t resf;
+	cl_inforesfunction_t resf;
 	resf.indexpack=indexpack;
 	resf.Result=Result;
-	client_addresfunction(client,resf);
-	sender(client,data,size);
+	cl_client_addresfunction(client,resf);
+	cl_sender(client,data,size);
     free(data);
-    DestroyJson_Construct(&j);
+    cl_DestroyJson_Construct(&j);
 	printf("SEND PACK\n");
 	indexpack++;
 	
 }
-void SendJson(client_t* client,char* json,int length){
+void cl_SendJson(cl_client_t* client,char* json,int length){
 	char datajson[2000];
 	datajson[4]='\0';
 	char* startdata=&datajson[4];
@@ -127,12 +127,12 @@ void SendJson(client_t* client,char* json,int length){
 	memcpy(datajson,&size,4);
 	size+=4;
 	printf("DATA %s\n",&datajson[4]);
-	sendall(client->sock_conn,datajson,&size);
+	cl_sendall(client->sock_conn,datajson,&size);
 }
-infopackreq_t client_getinfopackbyid(client_t* cl,int idpack){
-	infopackreq_t* array=cl->userpacks.data;
-	infopackreq_t res;
-	CreateInfoPackReq(&res);
+cl_infopackreq_t cl_client_getinfopackbyid(cl_client_t* cl,int idpack){
+	cl_infopackreq_t* array=cl->userpacks.data;
+	cl_infopackreq_t res;
+	cl_CreateInfoPackReq(&res);
 	for(int i=0;i<cl->userpacks.realsize;i++){
 		if(array[i].idpack==idpack){
 			return array[i];
@@ -140,10 +140,10 @@ infopackreq_t client_getinfopackbyid(client_t* cl,int idpack){
 	}
 	return res;	
 }
-inforesfunction_t client_getinfofunctionbyindex(client_t* cl,int indexpack){
-	inforesfunction_t* array=cl->resfunction.data;
-	inforesfunction_t res;
-	CreateInfoResFunction(&res);
+cl_inforesfunction_t cl_client_getinfofunctionbyindex(cl_client_t* cl,int indexpack){
+	cl_inforesfunction_t* array=cl->resfunction.data;
+	cl_inforesfunction_t res;
+	cl_CreateInfoResFunction(&res);
 	for(int i=0;i<cl->resfunction.realsize;i++){
 		if(array[i].indexpack==indexpack){
 			return array[i];
@@ -151,7 +151,7 @@ inforesfunction_t client_getinfofunctionbyindex(client_t* cl,int indexpack){
 	}
 	return res;	
 }
-void GetPacks(client_t* client){
+void cl_GetPacks(cl_client_t* client){
 	
 	
     int sizelast=0;
@@ -192,12 +192,12 @@ void GetPacks(client_t* client){
 			data[size-1]='\0';
             json_value* val=json_parse(data,length);
             if(val!=NULL){
-                json_object_entry* jidpack=GetNameKey(val,"idpack");
-				json_object_entry* jindexpack=GetNameKey(val,"indexpack");
+                json_object_entry* jidpack=cl_GetNameKey(val,"idpack");
+				json_object_entry* jindexpack=cl_GetNameKey(val,"indexpack");
                 if(jidpack!=NULL&&jidpack->value->type==json_integer){
 					int idpack=jidpack->value->u.integer;
-					infopackreq_t info=client_getinfopackbyid(client,idpack);
-					packreq_t* pack=NULL;
+					cl_infopackreq_t info=cl_client_getinfopackbyid(client,idpack);
+					cl_packreq_t* pack=NULL;
 					if(info.CreatePack!=NULL){
 						pack=malloc(info.sizepack);
 						info.CreatePack(pack);
@@ -214,7 +214,7 @@ void GetPacks(client_t* client){
 					if(jindexpack!=NULL&&jindexpack->value->type==json_integer){
 						//res
 						int indexpack=jindexpack->value->u.integer;
-						inforesfunction_t infofun=client_getinfofunctionbyindex(client,indexpack);
+						cl_inforesfunction_t infofun=cl_client_getinfofunctionbyindex(client,indexpack);
 						if(infofun.Result!=NULL){
 							infofun.Result(pack);
 						}

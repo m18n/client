@@ -7,48 +7,48 @@
 #include <string.h>
 #include"parser.h"
 #include<stdbool.h>
-typedef struct packreq{
+typedef struct cl_packreq{
     int indexpack;
-    bool(*JsonToObject)(struct packreq* pack,json_value* json);
-    void(*ProcessPack)(struct packreq* pack);
-}packreq_t;
-void CreatePackReq(packreq_t* pack);
-typedef struct infopackreq{
+    bool(*JsonToObject)(struct cl_packreq* pack,json_value* json);
+    void(*ProcessPack)(struct cl_packreq* pack);
+}cl_packreq_t;
+void cl_CreatePackReq(cl_packreq_t* pack);
+typedef struct cl_infopackreq{
     int sizepack;
     int idpack;
-    void(*CreatePack)(packreq_t* req);
-}infopackreq_t;
-void CreateInfoPackReq(infopackreq_t* self);
-typedef struct inforesfunction{
-    void(*Result)(packreq_t* pack);
+    void(*CreatePack)(cl_packreq_t* req);
+}cl_infopackreq_t;
+void cl_CreateInfoPackReq(cl_infopackreq_t* self);
+typedef struct cl_inforesfunction{
+    void(*Result)(cl_packreq_t* pack);
     int indexpack;
-}inforesfunction_t;
-void CreateInfoResFunction(inforesfunction_t* self);
-typedef struct client{
+}cl_inforesfunction_t;
+void cl_CreateInfoResFunction(cl_inforesfunction_t* self);
+typedef struct cl_client{
     int sock_conn;
     char ip[200];
     struct sockaddr_in address;
     int port;
     int sizepacks;
-    arrayd_t userpacks;
-    arrayd_t resfunction;
-}client_t;
-int sendall(client_t* client, char *buf, int *len);
-int sender(client_t* client,char* buf,int len);
-infopackreq_t client_getinfopackbyid(client_t* cl,int idpack);
-inforesfunction_t client_getinfofunctionbyindex(client_t* cl,int indexpack);
-void client_addresfunction(client_t* cl,inforesfunction_t info);
-void client_adduserpacks(client_t* cl,void(*CreatePack)(packreq_t* self),int sizeuserpack,int idpack);
-void GetPacks(client_t* client);
-int ClientConnect(client_t* client,const char* ip,int port);
-void ProcessPacks(client_t* client);
+    cl_arrayd_t userpacks;
+    cl_arrayd_t resfunction;
+}cl_client_t;
+int cl_sendall(cl_client_t* client, char *buf, int *len);
+int cl_sender(cl_client_t* client,char* buf,int len);
+cl_infopackreq_t cl_client_getinfopackbyid(cl_client_t* cl,int idpack);
+cl_inforesfunction_t cl_client_getinfofunctionbyindex(cl_client_t* cl,int indexpack);
+void cl_client_addresfunction(cl_client_t* cl,cl_inforesfunction_t info);
+void cl_client_adduserpacks(cl_client_t* cl,void(*CreatePack)(cl_packreq_t* self),int sizeuserpack,int idpack);
+void cl_GetPacks(cl_client_t* client);
+int cl_ClientConnect(cl_client_t* client,const char* ip,int port);
+void cl_ProcessPacks(cl_client_t* client);
 // void GetPacks(v2_t* v);
-typedef struct packres{
+typedef struct cl_packres{
     int idpack;
-    json_construct_t(*GetJsonPack)(struct packres* pk);
-}packres_t;
-void CreatePackRes(packres_t* pack);
-void SendPack(client_t* client,packres_t* pack,void(*Result)(packreq_t* pack));
+    cl_json_construct_t(*GetJsonPack)(struct cl_packres* pk);
+}cl_packres_t;
+void cl_CreatePackRes(cl_packres_t* pack);
+void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack));
 // typedef struct pk_start_send_file{
 //     pack_t pk;
 //     char namefile[200];

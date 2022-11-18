@@ -1,5 +1,5 @@
 #include"parser.h"
-int StringAddString(char* string,int sizestring,const char* str,int sizestr){
+int cl_StringAddString(char* string,int sizestring,const char* str,int sizestr){
     int length=-2;
     if(sizestring==-1&&sizestr==0){
         length=strlen(string);
@@ -20,7 +20,7 @@ int StringAddString(char* string,int sizestring,const char* str,int sizestr){
    
     return length;
 }
-int StringAddInt(char* string,int sizestring,int number){
+int cl_StringAddInt(char* string,int sizestring,int number){
     char buffint[12];
     sprintf(buffint, "%d", number);
     int lenbuffint=strlen(buffint);
@@ -36,13 +36,13 @@ int StringAddInt(char* string,int sizestring,int number){
     return length;
 }
 
-int GetLengthInt(int number){
+int cl_GetLengthInt(int number){
     char buffint[12];
     sprintf(buffint, "%d", number);
     return strlen(buffint);
 }
 
-int SearchStringInArray(char* array,int size,int startindex,const char* search,int count)
+int cl_SearchStringInArray(char* array,int size,int startindex,const char* search,int count)
 {
     int len = strlen(search);
     int c = 0;
@@ -75,7 +75,7 @@ int SearchStringInArray(char* array,int size,int startindex,const char* search,i
         return -1;
     
 }
-int SearchNameKey(json_value* json,const char* name){
+int cl_SearchNameKey(json_value* json,const char* name){
     for(int i=0;i<json->u.object.length;i++){
         if(strcmp(json->u.object.values[i].name,name)==0){
             return i;
@@ -83,7 +83,7 @@ int SearchNameKey(json_value* json,const char* name){
     } 
     return -1;
 }
-json_object_entry* GetNameKey(json_value* json,const char* name){
+json_object_entry* cl_GetNameKey(json_value* json,const char* name){
     for(int i=0;i<json->u.object.length;i++){
         if(strcmp(json->u.object.values[i].name,name)==0){
             return &json->u.object.values[i];
@@ -91,19 +91,19 @@ json_object_entry* GetNameKey(json_value* json,const char* name){
     } 
     return NULL;
 }
-void CreateArrayD(arrayd_t* array){
+void cl_CreateArrayD(cl_arrayd_t* array){
     array->allsize=0;
     array->realsize=0;
     array->data=NULL;
     array->sizeelement=0;
 }
-void InitArrayd(arrayd_t* array,int sizearray,int sizeelement){
-    CreateArrayD(array);
+void cl_InitArrayd(cl_arrayd_t* array,int sizearray,int sizeelement){
+    cl_CreateArrayD(array);
     array->data=malloc(sizeelement*sizearray);
     array->allsize=sizearray;
     array->sizeelement=sizeelement;
 }
-void arrayd_addelement(arrayd_t* array,void* element){
+void cl_arrayd_addelement(cl_arrayd_t* array,void* element){
     if(array->allsize==array->realsize){
         array->allsize++;
         void* newarr=malloc(array->allsize*array->sizeelement);
@@ -119,48 +119,48 @@ void arrayd_addelement(arrayd_t* array,void* element){
         array->realsize++;
     }
 }
-void DestroyArrayD(arrayd_t* array){
+void cl_DestroyArrayD(cl_arrayd_t* array){
     free(array->data);
 }
-void CreateJson_Item(json_item_t* item){
+void cl_CreateJson_Item(cl_json_item_t* item){
     item->name[0]='\0';
     item->strvalue=NULL;
     item->intvalue=0;
     item->bint=false;
 }
-void json_item_setname(json_item_t* item,const char* name){
+void cl_json_item_setname(cl_json_item_t* item,const char* name){
     strcpy(item->name,name);
 }
-void json_item_setintvalue(json_item_t* item,int value){
+void cl_json_item_setintvalue(cl_json_item_t* item,int value){
     item->intvalue=value;
     item->bint=true;
 }
-void json_item_setstrvalue(json_item_t* item,const char* value){
+void json_item_setstrvalue(cl_json_item_t* item,const char* value){
     int size=strlen(value)+1;
     item->strvalue=malloc(size);
     strcpy(item->strvalue,value);
     item->strvalue[size-1]='\0';
 }
-void CreateJson_Construct(json_construct_t* json){
-    InitArrayd(&json->jsonitem,0,sizeof(json_item_t));
+void cl_CreateJson_Construct(cl_json_construct_t* json){
+    cl_InitArrayd(&json->jsonitem,0,sizeof(cl_json_item_t));
 }
-void DestroyJson_Construct(json_construct_t* json){
-    json_item_t* items=json->jsonitem.data;
+void cl_DestroyJson_Construct(cl_json_construct_t* json){
+    cl_json_item_t* items=json->jsonitem.data;
     for(int i=0;i<json->jsonitem.realsize;i++){
         if(items[i].strvalue!=NULL){
             free(items[i].strvalue);
         }
     }
-    DestroyArrayD(&json->jsonitem);
+    cl_DestroyArrayD(&json->jsonitem);
 }
-void json_construct_addelement(json_construct_t* json,json_item_t item){
-    arrayd_addelement(json,&item);
+void cl_json_construct_addelement(cl_json_construct_t* json,cl_json_item_t item){
+    cl_arrayd_addelement(json,&item);
 }
 
-char* json_construct_getstring(json_construct_t* json_c){
+char* cl_json_construct_getstring(cl_json_construct_t* json_c){
     int allsize=2;
     
-    json_item_t* array=json_c->jsonitem.data;
+    cl_json_item_t* array=json_c->jsonitem.data;
     
     for(int i=0;i<json_c->jsonitem.realsize;i++){
         allsize+=5+strlen(array[i].name);//5=|"":, |
@@ -208,10 +208,10 @@ char* json_construct_getstring(json_construct_t* json_c){
     json[allsize]='\0';
     return json;
 }
-char* json_construct_getstring_SEND(json_construct_t* json_c,int* size){
+char* cl_json_construct_getstring_SEND(cl_json_construct_t* json_c,int* size){
     int allsize=2;
     
-    json_item_t* array=json_c->jsonitem.data;
+    cl_json_item_t* array=json_c->jsonitem.data;
     
     for(int i=0;i<json_c->jsonitem.realsize;i++){
         allsize+=5+strlen(array[i].name);//5=|"":, |

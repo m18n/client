@@ -4,9 +4,9 @@
 
 int main(){
     printf("HELLO ");
-    client_t client;
-    ClientConnect(&client,"192.168.0.105",9999);
-    GetPacks(&client);
+    cl_client_t client;
+    cl_ClientConnect(&client,"192.168.0.105",9999);
+    cl_GetPacks(&client);
     printf("NICE\n");
     scanf("%d");
 
