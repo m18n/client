@@ -135,7 +135,7 @@ void cl_json_item_setintvalue(cl_json_item_t* item,int value){
     item->intvalue=value;
     item->bint=true;
 }
-void json_item_setstrvalue(cl_json_item_t* item,const char* value){
+void cl_json_item_setstrvalue(cl_json_item_t* item,const char* value){
     int size=strlen(value)+1;
     item->strvalue=malloc(size);
     strcpy(item->strvalue,value);
