@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(client)
+set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread ")
+include_directories("include")
+#add_executable(${PROJECT_NAME} main.c src/parser.c src/json.c src/client.c)
+add_library(${PROJECT_NAME} SHARED src/parser.c src/json.c src/client.c)
+target_link_libraries(${PROJECT_NAME} -lm)
