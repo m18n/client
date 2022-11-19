@@ -14,9 +14,12 @@ void cl_client_adduserpacks(cl_client_t* cl,void(*CreatePack)(cl_packreq_t* self
     info.sizepack=sizeuserpack;
     cl_arrayd_addelement(&cl->userpacks,&info);
 }
-int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
+void cl_InitClient(cl_client_t* client){
 	cl_InitArrayd(&client->userpacks,0,sizeof(cl_infopackreq_t));
 	cl_InitArrayd(&client->resfunction,0,sizeof(cl_inforesfunction_t));
+}
+int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
+	
 	client->port=port;
     strcpy(client->ip,ip);
 	//Create socket
@@ -41,6 +44,8 @@ int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
 	}
 	
 	printf("CONNECT\n");
+	pthread_t process_pack;
+	pthread_create( &process_pack, NULL, cl_StartProcess, (void*) client);
 	return 0;
 }
 void cl_CreatePackRes(cl_packres_t* pack){
@@ -151,7 +156,7 @@ cl_inforesfunction_t cl_client_getinfofunctionbyindex(cl_client_t* cl,int indexp
 	}
 	return res;	
 }
-void cl_GetPacks(cl_client_t* client){
+void cl_StartProcess(cl_client_t* client){
 	
 	
     int sizelast=0;

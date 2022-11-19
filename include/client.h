@@ -33,13 +33,14 @@ typedef struct cl_client{
     cl_arrayd_t userpacks;
     cl_arrayd_t resfunction;
 }cl_client_t;
+void cl_InitClient(cl_client_t* client);
 int cl_sendall(cl_client_t* client, char *buf, int *len);
 int cl_sender(cl_client_t* client,char* buf,int len);
 cl_infopackreq_t cl_client_getinfopackbyid(cl_client_t* cl,int idpack);
 cl_inforesfunction_t cl_client_getinfofunctionbyindex(cl_client_t* cl,int indexpack);
 void cl_client_addresfunction(cl_client_t* cl,cl_inforesfunction_t info);
 void cl_client_adduserpacks(cl_client_t* cl,void(*CreatePack)(cl_packreq_t* self),int sizeuserpack,int idpack);
-void cl_GetPacks(cl_client_t* client);
+void cl_StartProcess(cl_client_t* client);
 int cl_ClientConnect(cl_client_t* client,const char* ip,int port);
 void cl_ProcessPacks(cl_client_t* client);
 // void GetPacks(v2_t* v);
