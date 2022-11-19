@@ -109,7 +109,7 @@ int cl_sender(cl_client_t* client,char* buf,int len){
 }
 
 void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack)){
-    int indexpack=0;
+    int indexpack=-1;
 	if(Result!=NULL){
 		indexpack=cl_client_addresfunction(client,Result);
 	}
@@ -234,7 +234,7 @@ void cl_StartProcess(cl_client_t* client){
 						printf("ERROR SEARCH PACK\n");
 						break;
 					}
-					if(jindexpack!=NULL&&jindexpack->value->type==json_integer){
+					if(jindexpack!=NULL&&jindexpack->value->type==json_integer&&jindexpack->value->u.integer!=-1){
 						//res
 						int indexpack=jindexpack->value->u.integer;
 						cl_inforesfunction_t infofun=cl_client_get_infofunction_byindex(client,indexpack);
