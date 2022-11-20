@@ -20,8 +20,9 @@ typedef struct cl_infopackreq{
 }cl_infopackreq_t;
 void cl_CreateInfoPackReq(cl_infopackreq_t* self);
 typedef struct cl_inforesfunction{
-    void(*Result)(cl_packreq_t* pack);
+    void(*Result)(cl_packreq_t* pack,void* data);
     int indexpack;
+    void* data;
 }cl_inforesfunction_t;
 void cl_CreateInfoResFunction(cl_inforesfunction_t* self);
 typedef struct cl_client{
@@ -39,7 +40,7 @@ int cl_sender(cl_client_t* client,char* buf,int len);
 cl_infopackreq_t cl_client_getinfopackbyid(cl_client_t* cl,int idpack);
 cl_inforesfunction_t cl_client_get_infofunction_byindex(cl_client_t* cl,int indexpack);
 void cl_client_infofunction_finish(cl_client_t* cl,int indexpack);
-int cl_client_addresfunction(cl_client_t* cl,void(*Result)(cl_packreq_t* pack));
+int cl_client_addresfunction(cl_client_t* cl,void(*Result)(cl_packreq_t* pack,void* data),void* data);
 void cl_client_adduserpacks(cl_client_t* cl,void(*CreatePack)(cl_packreq_t* self),int sizeuserpack,int idpack);
 void cl_StartProcess(cl_client_t* client);
 int cl_ClientConnect(cl_client_t* client,const char* ip,int port);
@@ -50,7 +51,7 @@ typedef struct cl_packres{
     cl_json_construct_t(*GetJsonPack)(struct cl_packres* pk);
 }cl_packres_t;
 void cl_CreatePackRes(cl_packres_t* pack);
-void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack));
+void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack,void* data),void* data);
 // typedef struct pk_start_send_file{
 //     pack_t pk;
 //     char namefile[200];

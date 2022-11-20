@@ -4,18 +4,20 @@ void cl_CreatePackReq(cl_packreq_t* pack){
     pack->JsonToObject=NULL;
     pack->ProcessPack=NULL;
 }
-int cl_client_addresfunction(cl_client_t* cl,void(*Result)(cl_packreq_t* pack)){
+int cl_client_addresfunction(cl_client_t* cl,void(*Result)(cl_packreq_t* pack,void* data),void* data){
 	cl_inforesfunction_t* fun=cl->resfunction.data;
     for(int i=0;i<cl->resfunction.realsize;i++){
         if(fun[i].Result==NULL){
 			fun[i].indexpack=i;
 			fun[i].Result=Result;
+			fun[i].data=data;
             return i;
         }
     }
 	cl_inforesfunction_t info;
 	info.indexpack=cl->resfunction.realsize;
 	info.Result=Result;
+	info.data=data;
 	cl_arrayd_addelement(&cl->resfunction,&info);
 	return info.indexpack;
 }
@@ -72,6 +74,7 @@ void cl_CreateInfoPackReq(cl_infopackreq_t* self){
 void cl_CreateInfoResFunction(cl_inforesfunction_t* self){
 	self->Result=NULL;
 	self->indexpack=-1;
+	self->data=NULL;
 }
 
 int cl_sendall(cl_client_t* client, char *buf, int *len)
@@ -108,10 +111,10 @@ int cl_sender(cl_client_t* client,char* buf,int len){
 	return mylen;
 }
 
-void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack)){
+void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack,void* data),void* data){
     int indexpack=-1;
 	if(Result!=NULL){
-		indexpack=cl_client_addresfunction(client,Result);
+		indexpack=cl_client_addresfunction(client,Result,data);
 	}
     cl_json_construct_t j=pack->GetJsonPack(pack);
     cl_json_item_t jidpack;
@@ -125,10 +128,10 @@ void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq
     cl_json_item_setintvalue(&jindexpack,indexpack);
     cl_json_construct_addelement(&j,jindexpack);
 	int size=0;
-    char* data=cl_json_construct_getstring_SEND(&j,&size);
-    printf("DATA: %s\n",&data[4]);
-	cl_sender(client,data,size);
-    free(data);
+    char* d=cl_json_construct_getstring_SEND(&j,&size);
+    printf("DATA: %s\n",&d[4]);
+	cl_sender(client,d,size);
+    free(d);
     cl_DestroyJson_Construct(&j);
 	printf("SEND PACK\n");	
 }
@@ -239,7 +242,7 @@ void cl_StartProcess(cl_client_t* client){
 						int indexpack=jindexpack->value->u.integer;
 						cl_inforesfunction_t infofun=cl_client_get_infofunction_byindex(client,indexpack);
 						if(infofun.Result!=NULL){
-							infofun.Result(pack);
+							infofun.Result(pack,infofun.data);
 							cl_client_infofunction_finish(client,indexpack);
 						}
 					}else{
