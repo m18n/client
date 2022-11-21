@@ -33,6 +33,7 @@ typedef struct cl_client{
     int sizepacks;
     cl_arrayd_t userpacks;
     cl_arrayd_t resfunction;
+    pthread_mutex_t sendmutex;
 }cl_client_t;
 void cl_InitClient(cl_client_t* client);
 int cl_sendall(cl_client_t* client, char *buf, int *len);

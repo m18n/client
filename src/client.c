@@ -130,7 +130,9 @@ void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq
 	int size=0;
     char* d=cl_json_construct_getstring_SEND(&j,&size);
     printf("DATA: %s\n",&d[4]);
+	pthread_mutex_lock(&client->sendmutex);
 	cl_sender(client,d,size);
+	pthread_mutex_unlock(&client->sendmutex);
     free(d);
     cl_DestroyJson_Construct(&j);
 	printf("SEND PACK\n");	
