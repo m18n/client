@@ -219,7 +219,7 @@ void cl_StartProcess(cl_client_t* client){
         if(sizelast==0&&length>0){
             //обработка пакету
 			data[size-1]='\0';
-            json_value* val=json_parse(data,length);
+            json_value* val=json_parse(data,size);
             if(val!=NULL){
                 json_object_entry* jidpack=cl_GetNameKey(val,"idpack");
 				json_object_entry* jindexpack=cl_GetNameKey(val,"indexpack");
