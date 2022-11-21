@@ -29,6 +29,7 @@ void cl_client_adduserpacks(cl_client_t* cl,void(*CreatePack)(cl_packreq_t* self
     cl_arrayd_addelement(&cl->userpacks,&info);
 }
 void cl_InitClient(cl_client_t* client){
+	pthread_mutex_init(&client->sendmutex, NULL);
 	cl_InitArrayd(&client->userpacks,0,sizeof(cl_infopackreq_t));
 	cl_InitArrayd(&client->resfunction,0,sizeof(cl_inforesfunction_t));
 }
