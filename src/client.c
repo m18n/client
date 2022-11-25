@@ -57,8 +57,6 @@ int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
 		client->sock_conn=-1;
 		return 1;
 	}
-	
-	printf("CONNECT\n");
 	pthread_t process_pack;
 	pthread_create( &process_pack, NULL, cl_StartProcess, (void*) client);
 	return 0;
