@@ -1,4 +1,14 @@
 #include"client.h"
+bool cl_show_log=true;
+void show_m(char* msg,bool error){
+	if(error==true){
+		printf("ERROR: %s",msg);
+	}else{
+		if(cl_show_log==true){
+        	printf("LOG: %s",msg);
+    	} 
+	}
+}
 void cl_CreatePackReq(cl_packreq_t* pack){
     pack->indexpack=-1;
     pack->JsonToObject=NULL;
@@ -33,6 +43,7 @@ void cl_InitClient(cl_client_t* client){
 	cl_InitArrayd(&client->userpacks,0,sizeof(cl_infopackreq_t));
 	cl_InitArrayd(&client->resfunction,0,sizeof(cl_inforesfunction_t));
 }
+
 int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
 	
 	client->port=port;
@@ -41,7 +52,7 @@ int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
 	client->sock_conn = socket(AF_INET , SOCK_STREAM , 0);
 	if (client->sock_conn == -1)
 	{
-		printf("Could not create socket");
+		show_m("Could not create socket\n",true);
 		return -1;
 	}
 		
@@ -53,7 +64,7 @@ int cl_ClientConnect(cl_client_t* client,const char* ip,int port){
 	//Connect to remote server
 	if (connect(client->sock_conn, (struct sockaddr *)&client->address, sizeof(client->address)) < 0)
 	{
-		puts("connect error");
+		show_m("connect error\n",true);
 		client->sock_conn=-1;
 		return 1;
 	}
@@ -98,7 +109,7 @@ int cl_sender(cl_client_t* client,char* buf,int len){
 		mylen=len;
 		res=cl_sendall(client,buf,&mylen);
 		if(res==-1){
-			printf("NONE CONNECT\n");
+			show_m("NONE CONNECT\n",true);
 			close(client->sock_conn);
 			client->sock_conn=-1;
 			cl_ClientConnect(client,client->ip,client->port);
@@ -144,7 +155,7 @@ void cl_SendJson(cl_client_t* client,char* json,int length){
 	int32_t size=length;
 	memcpy(datajson,&size,4);
 	size+=4;
-	printf("DATA %s\n",&datajson[4]);
+	//printf("DATA %s\n",&datajson[4]);
 	cl_sendall(client->sock_conn,datajson,&size);
 }
 cl_infopackreq_t cl_client_getinfopackbyid(cl_client_t* cl,int idpack){
@@ -201,7 +212,7 @@ void cl_StartProcess(cl_client_t* client){
 					size=sizepack;
 				}
             }else{
-                printf("ERROR SERVER\n");
+				show_m("ERROR SERVER\n",true);
             }
         }else{
             length=recv(client->sock_conn,&data[realsize],sizelast-realsize,NULL);
@@ -231,11 +242,12 @@ void cl_StartProcess(cl_client_t* client){
 						bool j=pack->JsonToObject(pack,val);
 						if(!j){
 							free(pack);
-							printf("ERROR PARSE VALUE PACK\n");
+							show_m("ERROR PARSE VALUE PACK\n",true);
+							//printf("ERROR PARSE VALUE PACK\n");
 							break;
 						}
 					}else{
-						printf("ERROR SEARCH PACK\n");
+						show_m("ERROR SEARCH PACK\n",true);
 						break;
 					}
 					if(jindexpack!=NULL&&jindexpack->value->type==json_integer&&jindexpack->value->u.integer!=-1){
@@ -252,21 +264,21 @@ void cl_StartProcess(cl_client_t* client){
 					}
 					free(pack);
                 }else{
-                    printf("ERROR idpack\n");
+                    show_m("ERROR idpack\n",true);
 					break;
                 }
             }else{
-                printf("ERROR PARSE PACK\n");
+                show_m("ERROR PARSE PACK\n",true);
 				break;
             }  
             
             //кінець обработки
         }
 		if(length==0){
-            printf("DISCONNECT\n");
+            show_m("DISCONNECT\n",false);
             break;
         }else if(length<0){
-            printf("ERROR RECV\n");
+           	show_m("ERROR RECV\n",true);
             break;
         }
             

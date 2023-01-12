@@ -7,6 +7,8 @@
 #include <string.h>
 #include"parser.h"
 #include<stdbool.h>
+extern bool cl_show_log;
+void show_m(char* msg,bool error);
 typedef struct cl_packreq{
     int indexpack;
     bool(*JsonToObject)(struct cl_packreq* pack,json_value* json);
