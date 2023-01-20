@@ -13,7 +13,7 @@
 #include"parser.h"
 namespace client{
     class pack{
-    private:
+    protected:
         int idpack;
     public:
         virtual bool JsonToData(json_value* json)=0;
@@ -60,7 +60,9 @@ namespace client{
             packinfo info;
             info.ptrpack=(pack*)malloc(sizepack);
             memcpy(info.ptrpack,p,sizepack);
+            free(p);
             userpacks.push_back(info);
+            
         }
 
         void ConnectToServer(std::string ip,int port,bool loop){
