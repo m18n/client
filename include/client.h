@@ -5,59 +5,103 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
+#include"exeception.h"
+#include<iostream>
+#include<vector>
+#include<thread>
 #include"parser.h"
-#include<stdbool.h>
-extern bool cl_show_log;
-void show_m(char* msg,bool error);
-typedef struct cl_packreq{
-    int indexpack;
-    bool(*JsonToObject)(struct cl_packreq* pack,json_value* json);
-    void(*ProcessPack)(struct cl_packreq* pack);
-}cl_packreq_t;
-void cl_CreatePackReq(cl_packreq_t* pack);
-typedef struct cl_infopackreq{
-    int sizepack;
-    int idpack;
-    void(*CreatePack)(cl_packreq_t* req);
-}cl_infopackreq_t;
-void cl_CreateInfoPackReq(cl_infopackreq_t* self);
-typedef struct cl_inforesfunction{
-    void(*Result)(cl_packreq_t* pack,void* data);
-    int indexpack;
-    void* data;
-}cl_inforesfunction_t;
-void cl_CreateInfoResFunction(cl_inforesfunction_t* self);
-typedef struct cl_client{
-    int sock_conn;
-    char ip[200];
-    struct sockaddr_in address;
-    int port;
-    int sizepacks;
-    cl_arrayd_t userpacks;
-    cl_arrayd_t resfunction;
-    pthread_mutex_t sendmutex;
-}cl_client_t;
-void cl_InitClient(cl_client_t* client);
-int cl_sendall(cl_client_t* client, char *buf, int *len);
-int cl_sender(cl_client_t* client,char* buf,int len);
-cl_infopackreq_t cl_client_getinfopackbyid(cl_client_t* cl,int idpack);
-cl_inforesfunction_t cl_client_get_infofunction_byindex(cl_client_t* cl,int indexpack);
-void cl_client_infofunction_finish(cl_client_t* cl,int indexpack);
-int cl_client_addresfunction(cl_client_t* cl,void(*Result)(cl_packreq_t* pack,void* data),void* data);
-void cl_client_adduserpacks(cl_client_t* cl,void(*CreatePack)(cl_packreq_t* self),int sizeuserpack,int idpack);
-void cl_StartProcess(cl_client_t* client);
-int cl_ClientConnect(cl_client_t* client,const char* ip,int port);
-void cl_ProcessPacks(cl_client_t* client);
-// void GetPacks(v2_t* v);
-typedef struct cl_packres{
-    int idpack;
-    cl_json_construct_t(*GetJsonPack)(struct cl_packres* pk);
-}cl_packres_t;
-void cl_CreatePackRes(cl_packres_t* pack);
-void cl_SendPack(cl_client_t* client,cl_packres_t* pack,void(*Result)(cl_packreq_t* pack,void* data),void* data);
-// typedef struct pk_start_send_file{
-//     pack_t pk;
-//     char namefile[200];
-//     int sizefile;
-//     char* file;
-// }pk_start_send_file_t;
+namespace client{
+    class pack{
+    private:
+        int idpack;
+    public:
+        virtual bool JsonToData(json_value* json)=0;
+        virtual void ProcessPack()=0;
+        virtual void InitPack()=0;
+        int GetIdPack(){
+            return idpack;
+        }
+    };
+    struct callback{
+        int callback_id=0;
+        void(*ProcessPack)(pack* pack)=NULL;
+    };
+    struct packinfo{
+        pack* ptrpack=NULL;
+        int sizepack=0;
+    };
+    class Client{
+    private:
+        int sock_conn;
+        std::string ip;
+        int port;
+        struct sockaddr_in address;
+        std::vector<packinfo> userpacks;
+        std::vector<callback> callbacks;
+        bool processgetpack;
+        std::vector<char>recvbuffer;
+    private:
+        int sendall(char *buf, int *len);
+        int sender(char* buf,int len);
+        void ProcessGetPack();
+        packinfo SearchPack(int idpack);
+        callback SearchCallBack(int indexpack);
+        void DeleteCallBack(int indexpack);
+    public:
+        Client(){
+            recvbuffer.resize(100000);
+            processgetpack=false;
+        }
+        Client(std::string ip,int port):Client(){
+            ConnectToServer(ip,port,false);
+        }
+        void AddPack(pack* p,int sizepack){
+            packinfo info;
+            info.ptrpack=(pack*)malloc(sizepack);
+            memcpy(info.ptrpack,p,sizepack);
+            userpacks.push_back(info);
+        }
+
+        void ConnectToServer(std::string ip,int port,bool loop){
+            this->port=port;
+            this->ip=ip;
+            //Create socket
+            sock_conn = socket(AF_INET , SOCK_STREAM , 0);
+            if (sock_conn == -1)
+            {
+                throw NetworkExeption("ERROR SOCKET\n");
+            }
+            address.sin_addr.s_addr = inet_addr(ip.c_str());
+            address.sin_family = AF_INET;
+            address.sin_port = htons(port);
+            if(loop){
+                int r=-1;
+                while(r<0){
+                    r=connect(sock_conn, (struct sockaddr *)&address, sizeof(address));
+                }
+            }else{
+                if(connect(sock_conn, (struct sockaddr *)&address, sizeof(address))<0){
+                    throw NetworkExeption("ERROR Connect\n");
+                }
+            }
+        
+            printf("OK Connect\n");
+        }
+        
+        void StartGetPack(){
+            processgetpack=true;
+            std::thread th(&Client::ProcessGetPack,this);
+            th.detach();
+        }
+        void StopGetPack(){
+            processgetpack=false;
+        }
+        ~Client(){
+            StopGetPack();
+            for(int i=0;i<userpacks.size();i++){
+                free(userpacks[i].ptrpack);
+            }
+        }
+    };
+};
