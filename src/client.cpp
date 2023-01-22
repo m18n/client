@@ -100,6 +100,7 @@ void client::Client::ProcessGetPack() {
           pack_req_info info = SearchPack(idpack);
           pack_req* pk = NULL;
           pk = (pack_req*)malloc(info.sizepack);
+          memcpy(pk,info.ptrpack,info.sizepack);
           pk->InitPack();
           bool j = pk->JsonToData(val);
           if (!j) {
@@ -115,8 +116,9 @@ void client::Client::ProcessGetPack() {
             int indexpack = jindexpack->value->u.integer;
             callback clb = SearchCallBack(indexpack);
             if (clb.ProcessPack != NULL) {
-              clb.ProcessPack(pk);
               DeleteCallBack(indexpack);
+              clb.ProcessPack(pk);
+              
             }
           } else {
             // update
@@ -153,8 +155,10 @@ client::Client::Client(std::string ip, int port) : Client() {
 void client::Client::AddPack(pack_req* p, int sizepack) {
   pack_req_info info;
   info.ptrpack = (pack_req*)malloc(sizepack);
+  info.sizepack=sizepack;
   memcpy(info.ptrpack, p, sizepack);
   free(p);
+  info.ptrpack->InitPack();
   userpacks.push_back(info);
 }
 
