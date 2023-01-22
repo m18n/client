@@ -1,10 +1,36 @@
 #include "client.h"
-int client::Client::sendall(char* buf, int* len) {
+int client::Client::sendall(char* buf, int len) {
+  int total = 0; // сколько байт мы послали
+  int bytesleft = len; // сколько байт осталось послать
+  int n;
+  while(total < len) {
+  n = send(sock_conn, buf+total, bytesleft, MSG_NOSIGNAL);
+  if (n == -1) { break; }
+  total += n;
+  bytesleft -= n;
+  }
+  return n==-1?-1:0; // вернуть -1 при сбое, 0 при успехе
+}
+// int client::Client::sender(char* buf, int len) {
+//   int mylen=len;
+// 	int res=-1;
+// 	do
+// 	{
+// 		mylen=len;
+// 		res=cl_sendall(buf,&mylen);
+// 		if(res==-1){
+// 			show_m("NONE CONNECT\n",true);
+// 			close(client->sock_conn);
+// 			client->sock_conn=-1;
+// 			cl_ClientConnect(client,client->ip,client->port);
+			
+// 		}
+// 	} while (res!=0);
+	 
+	
+// 	return mylen;
+// }
 
-}
-int client::Client::sender(char* buf, int len) {
-  
-}
 client::pack_req_info client::Client::SearchPack(int idpack) {
   for (int i = 0; i < userpacks.size(); i++) {
     if (userpacks[i].ptrpack->GetIdPack() == idpack) {
@@ -182,7 +208,7 @@ void client::Client::SendPack(pack_res* res, void (*Res)(void* pack)) {
   json.addelement(jcallback_id);
   std::string send = json.getstringofsend();
   // printf("DATA: %s\n",&d[4]);
-  sender(&send[0], send.size());
+  sendall(&send[0], send.size());
 }
 void client::Client::StartGetPack() {
   processgetpack = true;
