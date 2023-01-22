@@ -1,5 +1,5 @@
 #include "client.h"
-int client::Client::sendall(char* buf, int len) {
+int client::Client::sendall(char* buf, int len,int* t) {
   int total = 0; // сколько байт мы послали
   int bytesleft = len; // сколько байт осталось послать
   int n;
@@ -9,6 +9,8 @@ int client::Client::sendall(char* buf, int len) {
   total += n;
   bytesleft -= n;
   }
+  if(t!=NULL)
+    *t=total;
   return n==-1?-1:0; // вернуть -1 при сбое, 0 при успехе
 }
 // int client::Client::sender(char* buf, int len) {
@@ -211,8 +213,10 @@ void client::Client::SendPack(pack_res* res, void (*Res)(void* pack)) {
   json.addelement(jidpack);
   json.addelement(jcallback_id);
   std::string send = json.getstringofsend();
-  // printf("DATA: %s\n",&d[4]);
-  sendall(&send[0], send.size());
+  //printf("DATA: %s\n",&send[4]);
+  int s=0;
+  int r=sendall(&send[0], send.size(),&s);
+  std::cout<<"DATA: "<<&send[4]<<" SEND:"<<s<<" R:"<<r<<"\n";
 }
 void client::Client::StartGetPack() {
   processgetpack = true;

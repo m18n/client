@@ -54,7 +54,7 @@ class Client {
   std::vector<char> recvbuffer;
 
  private:
-  int sendall(char* buf, int len);
+  int sendall(char* buf, int len,int* t);
   void ProcessGetPack();
   pack_req_info SearchPack(int idpack);
   callback SearchCallBack(int indexpack);
