@@ -21,7 +21,6 @@ class pack_req {
  public:
   virtual bool JsonToData(json_value* json) = 0;
   virtual void ProcessPack() = 0;
-  virtual void InitPack() = 0;
   int GetIdPack() { return idpack; }
 };
 class pack_res {

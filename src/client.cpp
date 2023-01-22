@@ -103,7 +103,6 @@ void client::Client::ProcessGetPack() {
           pack_req* pk = NULL;
           pk = (pack_req*)malloc(info.sizepack);
           memcpy(pk,info.ptrpack,info.sizepack);
-          pk->InitPack();
           bool j = pk->JsonToData(val);
           if (!j) {
             free(pk);
@@ -160,7 +159,7 @@ void client::Client::AddPack(pack_req* p, int sizepack) {
   info.sizepack=sizepack;
   memcpy(info.ptrpack, p, sizepack);
   free(p);
-  info.ptrpack->InitPack();
+  //info.ptrpack->InitPack();
   userpacks.push_back(info);
 }
 
