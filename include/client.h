@@ -36,7 +36,7 @@ class pack_res {
 };
 struct callback {
   int callback_id = 0;
-  void (*ProcessPack)(pack_req* pack) = NULL;
+  void (*ProcessPack)(void* pack) = NULL;
 };
 struct pack_req_info {
   pack_req* ptrpack = NULL;
@@ -67,7 +67,7 @@ class Client {
   void AddPack(pack_req* p, int sizepack);
   void ConnectToServer(std::string ip, int port, bool loop);
   
-  void SendPack(pack_res* res,void(*Res)(pack_req* pack));
+  void SendPack(pack_res* res,void(*Res)(void* pack));
   void StartGetPack();
   void StopGetPack();
   ~Client();

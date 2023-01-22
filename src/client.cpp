@@ -1,4 +1,10 @@
 #include "client.h"
+int client::Client::sendall(char* buf, int* len) {
+
+}
+int client::Client::sender(char* buf, int len) {
+  
+}
 client::pack_req_info client::Client::SearchPack(int idpack) {
   for (int i = 0; i < userpacks.size(); i++) {
     if (userpacks[i].ptrpack->GetIdPack() == idpack) {
@@ -150,32 +156,33 @@ void client::Client::ConnectToServer(std::string ip, int port, bool loop) {
 
   printf("OK Connect\n");
 }
-int client::Client::GetCallbackId(){
-    if(callbacks.size()!=0){
-        int r=callbacks[callbacks.size()-1].callback_id+1;
-        return r;
-    }else{
-        return 1;
-    }
+int client::Client::GetCallbackId() {
+  if (callbacks.size() != 0) {
+    int r = callbacks[callbacks.size() - 1].callback_id + 1;
+    return r;
+  } else {
+    return 1;
+  }
 }
-void client::Client::SendPack(pack_res* res,void(*Res)(pack_req* pack)){
-    int callback_id=-1;
-	if(Res!=NULL){
-        callback cl;
-        callback_id=GetCallbackId();
-        cl.callback_id=callback_id;
-        callbacks.push_back(cl);
-	}
-    pars::json_construct json=res->GetJsonPack();
-    pars::json_item jidpack;
-    jidpack.init("idpack",res->GetIdPack());
-    pars::json_item jcallback_id;
-    jcallback_id.init("indexpack",callback_id);
-    json.addelement(jidpack);
-    json.addelement(jcallback_id);
-    std::string send=json.getstringofsend();
-    //printf("DATA: %s\n",&d[4]);
-    sender(&send[0],send.size());
+void client::Client::SendPack(pack_res* res, void (*Res)(void* pack)) {
+  int callback_id = -1;
+  if (Res != NULL) {
+    callback cl;
+    callback_id = GetCallbackId();
+    cl.callback_id = callback_id;
+    cl.ProcessPack = Res;
+    callbacks.push_back(cl);
+  }
+  pars::json_construct json = res->GetJsonPack();
+  pars::json_item jidpack;
+  jidpack.init("idpack", res->GetIdPack());
+  pars::json_item jcallback_id;
+  jcallback_id.init("indexpack", callback_id);
+  json.addelement(jidpack);
+  json.addelement(jcallback_id);
+  std::string send = json.getstringofsend();
+  // printf("DATA: %s\n",&d[4]);
+  sender(&send[0], send.size());
 }
 void client::Client::StartGetPack() {
   processgetpack = true;
